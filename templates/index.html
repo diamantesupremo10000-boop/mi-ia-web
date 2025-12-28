@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA Minimalista</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+        textarea { width: 100%; height: 100px; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #ccc; }
+        #output { margin-top: 20px; padding: 15px; background: #f4f4f4; border-radius: 5px; min-height: 50px; white-space: pre-wrap; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>🤖 Consultar a la IA</h1>
+    <p>Escribe algo y la IA te responderá.</p>
+    
+    <textarea id="promptInput" placeholder="Ej: Explícame la teoría de la relatividad en una frase..."></textarea>
+    <button id="sendBtn" onclick="askAI()">Enviar</button>
+    
+    <div id="output">La respuesta aparecerá aquí...</div>
+
+    <script>
+        async function askAI() {
+            const prompt = document.getElementById('promptInput').value;
+            const outputDiv = document.getElementById('output');
+            const btn = document.getElementById('sendBtn');
+
+            if (!prompt) return;
+
+            // UI Loading state
+            btn.disabled = true;
+            btn.innerText = "Pensando...";
+            outputDiv.innerText = "";
+            outputDiv.classList.remove('error');
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    outputDiv.innerText = data.result;
+                } else {
+                    outputDiv.innerText = "Error: " + (data.error || "Algo salió mal");
+                    outputDiv.classList.add('error');
+                }
+            } catch (err) {
+                outputDiv.innerText = "Error de conexión.";
+                outputDiv.classList.add('error');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Enviar";
+            }
+        }
+    </script>
+</body>
+</html>
